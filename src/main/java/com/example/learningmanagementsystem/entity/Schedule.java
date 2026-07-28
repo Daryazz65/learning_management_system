@@ -33,6 +33,4 @@ public class Schedule {
 
     @Column(name="date_finish", nullable = false)
     private LocalDate dateFinish;
-
-
 }
