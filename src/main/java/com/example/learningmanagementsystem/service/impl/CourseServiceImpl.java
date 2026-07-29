@@ -1,6 +1,7 @@
 package com.example.learningmanagementsystem.service.impl;
 
 import com.example.learningmanagementsystem.entity.Course;
+import com.example.learningmanagementsystem.exception.ResourceNotFoundException;
 import com.example.learningmanagementsystem.repository.CourseRepository;
 import com.example.learningmanagementsystem.service.CourseService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public Course getCourseById(Long id) {
         return courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Курс не найден"));
+                .orElseThrow(() -> new ResourceNotFoundException("Курс", id));
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.example.learningmanagementsystem.service.impl;
 
 import com.example.learningmanagementsystem.entity.Schedule;
+import com.example.learningmanagementsystem.exception.ResourceNotFoundException;
 import com.example.learningmanagementsystem.repository.ScheduleRepository;
 import com.example.learningmanagementsystem.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,9 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public Schedule getScheduleById(Long id){
+    public Schedule getScheduleById(Long id) {
         return scheduleRepository.findById(id)
-                .orElseThrow(() ->new RuntimeException("Расписание не найдено"));
+                .orElseThrow(() -> new ResourceNotFoundException("Расписание", id));
     }
 
     @Override

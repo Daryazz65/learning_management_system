@@ -2,6 +2,7 @@ package com.example.learningmanagementsystem.service.impl;
 
 import com.example.learningmanagementsystem.entity.Group;
 import com.example.learningmanagementsystem.entity.Student;
+import com.example.learningmanagementsystem.exception.ResourceNotFoundException;
 import com.example.learningmanagementsystem.repository.GroupRepository;
 import com.example.learningmanagementsystem.repository.StudentRepository;
 import com.example.learningmanagementsystem.service.GroupService;
@@ -22,9 +23,19 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public Group getGroupById(Long id){
+    public Group getGroupById(Long id) {
         return groupRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Группа не найдена"));
+                .orElseThrow(() -> new ResourceNotFoundException("Группа", id));
+    }
+
+    @Override
+    public Group addStudentToGroup(Long studentId, Long groupId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Студент", studentId));
+
+        Group group = getGroupById(groupId);
+        group.getStudents().add(student);
+        return groupRepository.save(group);
     }
 
     @Override
@@ -42,16 +53,5 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void deleteGroup(Long id){
         groupRepository.deleteById(id);
-    }
-
-    @Override
-    public Group addStudentToGroup(Long studentId, Long groupId){
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(()->new RuntimeException("Студент не найден"));
-
-        Group group = getGroupById(groupId);
-
-        group.getStudents().add(student);
-        return groupRepository.save(group);
     }
 }
