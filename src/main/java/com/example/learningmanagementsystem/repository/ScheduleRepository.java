@@ -1,11 +1,15 @@
 package com.example.learningmanagementsystem.repository;
 
 import com.example.learningmanagementsystem.entity.Schedule;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
+import java.time.LocalDateTime;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
-    List<Schedule> findByGroupId(Long groupId);
-    List<Schedule> findByCourseTeacherId(Long teacherId);
+    Page<Schedule> findByGroupId(Long groupId, Pageable pageable);
+    Page<Schedule> findByTeacherId(Long teacherId,Pageable pageable);
+
+    int deleteByDateFinishBefore(LocalDateTime date);
 }
