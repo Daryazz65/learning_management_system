@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
     Page<Schedule> findByGroupId(Long groupId, Pageable pageable);
-    Page<Schedule> findByTeacherId(Long teacherId,Pageable pageable);
 
-    int deleteByDateFinishBefore(LocalDateTime date);
+    Page<Schedule> findByTeacherId(Long teacherId,Pageable pageable);
+    void deleteByDateFinishBefore(LocalDateTime date);
 }

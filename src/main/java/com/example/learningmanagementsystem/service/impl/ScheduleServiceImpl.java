@@ -7,13 +7,17 @@ import com.example.learningmanagementsystem.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ScheduleServiceImpl implements ScheduleService {
+
     private final ScheduleRepository scheduleRepository;
 
     @Override
@@ -33,21 +37,6 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public Schedule updateSchedule(Long id, Schedule schedule) {
-        Schedule existingSchedule = getScheduleById(id);
-        existingSchedule.setDateStart(schedule.getDateStart());
-        existingSchedule.setDateFinish(schedule.getDateFinish());
-        existingSchedule.setGroup(schedule.getGroup());
-        existingSchedule.setCourse(schedule.getCourse());
-        existingSchedule.setTeacher(schedule.getTeacher());
-        return scheduleRepository.save(existingSchedule);
-    }
-    @Override
-    public void deleteSchedule(Long id){
-        scheduleRepository.deleteById(id);
-    }
-
-    @Override
     public Page<Schedule> getScheduleByGroupId(Long groupId, Pageable pageable) {
         return scheduleRepository.findByGroupId(groupId, pageable);
     }
@@ -58,7 +47,27 @@ public class ScheduleServiceImpl implements ScheduleService {
     }
 
     @Override
-    public void deleteOldSchedules(LocalDateTime date){
-        scheduleRepository.deleteByDateFinishBefore(date);
+    public Schedule updateSchedule(Long id, Schedule schedule) {
+        Schedule existingSchedule = getScheduleById(id);
+        existingSchedule.setGroup(schedule.getGroup());
+        existingSchedule.setCourse(schedule.getCourse());
+        existingSchedule.setTeacher(schedule.getTeacher());
+        existingSchedule.setDateStart(schedule.getDateStart());
+        existingSchedule.setDateFinish(schedule.getDateFinish());
+        return scheduleRepository.save(existingSchedule);
+    }
+
+    @Override
+    @Transactional
+    public void deleteSchedule(Long id) {
+        Schedule schedule = getScheduleById(id);
+        scheduleRepository.delete(schedule);
+    }
+
+    @Override
+    @Transactional
+    @Scheduled(cron = "0 0 3 * * ?")
+    public void deleteOldSchedules() {
+        scheduleRepository.deleteByDateFinishBefore(LocalDateTime.now());
     }
 }
