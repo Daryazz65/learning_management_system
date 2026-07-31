@@ -10,14 +10,11 @@ class StudentServiceTest {
 
     @Test
     void testStudentDtoCreation() {
-        StudentDto dto = new StudentDto();
-        dto.setId(1L);
-        dto.setName("Анна");
-        dto.setLastName("Смирнова");
+        StudentDto dto = new StudentDto(1L, "Анна", "Смирнова", null);
 
-        assertEquals(1L, dto.getId());
-        assertEquals("Анна", dto.getName());
-        assertEquals("Смирнова", dto.getLastName());
+        assertEquals(1L, dto.id());
+        assertEquals("Анна", dto.name());
+        assertEquals("Смирнова", dto.lastName());
     }
 
     @Test
@@ -29,5 +26,6 @@ class StudentServiceTest {
 
         assertEquals(1L, student.getId());
         assertEquals("Анна", student.getName());
+        assertEquals("Смирнова", student.getLastName());
     }
 }

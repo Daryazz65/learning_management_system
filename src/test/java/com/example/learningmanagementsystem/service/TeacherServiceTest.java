@@ -2,51 +2,72 @@ package com.example.learningmanagementsystem.service;
 
 import com.example.learningmanagementsystem.dto.TeacherDto;
 import com.example.learningmanagementsystem.entity.Teacher;
+import com.example.learningmanagementsystem.exception.TeacherNotFoundException;
 import com.example.learningmanagementsystem.mapper.TeacherMapper;
-import com.example.learningmanagementsystem.mapper.TeacherMapperImpl;
+import com.example.learningmanagementsystem.repository.TeacherRepository;
+import com.example.learningmanagementsystem.service.impl.TeacherServiceImpl;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TeacherServiceTest {
 
-    @Test
-    void testTeacherDtoCreation() {
-        TeacherDto dto = new TeacherDto();
-        dto.setId(1L);
-        dto.setName("Иван");
-        dto.setLastName("Иванов");
+    @Mock
+    private TeacherRepository teacherRepository;
 
-        assertEquals(1L, dto.getId());
-        assertEquals("Иван", dto.getName());
-        assertEquals("Иванов", dto.getLastName());
-    }
+    @Mock
+    private TeacherMapper teacherMapper;
+
+    @InjectMocks
+    private TeacherServiceImpl teacherService;
 
     @Test
-    void testTeacherEntityCreation() {
+    void getTeacherById_Success() {
         Teacher teacher = new Teacher();
         teacher.setId(1L);
         teacher.setName("Иван");
         teacher.setLastName("Иванов");
 
-        assertEquals(1L, teacher.getId());
-        assertEquals("Иван", teacher.getName());
-        assertEquals("Иванов", teacher.getLastName());
+        TeacherDto dto = new TeacherDto(1L, "Иван", "Иванов");
+
+        when(teacherRepository.findById(1L)).thenReturn(Optional.of(teacher));
+        when(teacherMapper.toDto(teacher)).thenReturn(dto);
+
+        TeacherDto result = teacherService.getTeacherById(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.id());
+        assertEquals("Иван", result.name());
     }
 
     @Test
-    void testTeacherMapper() {
-        TeacherMapper mapper = new TeacherMapperImpl();
+    void getTeacherById_NotFound() {
+        when(teacherRepository.findById(99L)).thenReturn(Optional.empty());
 
+        assertThrows(TeacherNotFoundException.class, () -> teacherService.getTeacherById(99L));
+    }
+
+    @Test
+    void getAllTeachers_Success() {
         Teacher teacher = new Teacher();
         teacher.setId(1L);
-        teacher.setName("Иван");
-        teacher.setLastName("Иванов");
+        TeacherDto dto = new TeacherDto(1L, "Иван", "Иванов");
 
-        TeacherDto dto = mapper.toDto(teacher);
+        when(teacherRepository.findAll()).thenReturn(List.of(teacher));
+        when(teacherMapper.toDto(teacher)).thenReturn(dto);
 
-        assertEquals(1L, dto.getId());
-        assertEquals("Иван", dto.getName());
-        assertEquals("Иванов", dto.getLastName());
+        List<TeacherDto> result = teacherService.getAllTeachers();
+
+        assertEquals(1, result.size());
+        assertEquals("Иван", result.get(0).name());
     }
 }

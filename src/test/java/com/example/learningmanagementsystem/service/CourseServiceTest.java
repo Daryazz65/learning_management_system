@@ -10,15 +10,12 @@ class CourseServiceTest {
 
     @Test
     void testCourseDtoCreation() {
-        CourseDto dto = new CourseDto();
-        dto.setId(1L);
-        dto.setName("Java");
-        dto.setDescription("Основы Java");
-        dto.setTeacherId(1L);
+        CourseDto dto = new CourseDto(1L, "Java", "Основы Java", 1L);
 
-        assertEquals(1L, dto.getId());
-        assertEquals("Java", dto.getName());
-        assertEquals(1L, dto.getTeacherId());
+        assertEquals(1L, dto.id());
+        assertEquals("Java", dto.name());
+        assertEquals("Основы Java", dto.description());
+        assertEquals(1L, dto.teacherId());
     }
 
     @Test

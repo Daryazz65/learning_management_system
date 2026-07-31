@@ -1,7 +1,6 @@
 package com.example.learningmanagementsystem.controller;
 
 import com.example.learningmanagementsystem.dto.StudentDto;
-import com.example.learningmanagementsystem.mapper.StudentMapper;
 import com.example.learningmanagementsystem.service.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,26 +15,25 @@ import java.util.List;
 public class StudentController {
 
     private final StudentService studentService;
-    private final StudentMapper studentMapper;
 
     @PostMapping
     public ResponseEntity<StudentDto> createStudent(@Valid @RequestBody StudentDto dto) {
-        return ResponseEntity.ok(studentMapper.toDto(studentService.createStudent(studentMapper.toEntity(dto))));
+        return ResponseEntity.ok(studentService.createStudent(dto));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<StudentDto> getStudentById(@PathVariable Long id) {
-        return ResponseEntity.ok(studentMapper.toDto(studentService.getStudentById(id)));
+        return ResponseEntity.ok(studentService.getStudentById(id));
     }
 
     @GetMapping
     public ResponseEntity<List<StudentDto>> getAllStudents() {
-        return ResponseEntity.ok(studentService.getAllStudents().stream().map(studentMapper::toDto).toList());
+        return ResponseEntity.ok(studentService.getAllStudents());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<StudentDto> updateStudent(@PathVariable Long id, @Valid @RequestBody StudentDto dto) {
-        return ResponseEntity.ok(studentMapper.toDto(studentService.updateStudent(id, studentMapper.toEntity(dto))));
+        return ResponseEntity.ok(studentService.updateStudent(id, dto));
     }
 
     @DeleteMapping("/{id}")

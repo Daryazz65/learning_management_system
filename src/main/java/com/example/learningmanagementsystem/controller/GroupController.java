@@ -1,7 +1,6 @@
 package com.example.learningmanagementsystem.controller;
 
 import com.example.learningmanagementsystem.dto.GroupDto;
-import com.example.learningmanagementsystem.mapper.GroupMapper;
 import com.example.learningmanagementsystem.service.GroupService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,26 +15,25 @@ import java.util.List;
 public class GroupController {
 
     private final GroupService groupService;
-    private final GroupMapper groupMapper;
 
     @PostMapping
     public ResponseEntity<GroupDto> createGroup(@Valid @RequestBody GroupDto dto) {
-        return ResponseEntity.ok(groupMapper.toDto(groupService.createGroup(groupMapper.toEntity(dto))));
+        return ResponseEntity.ok(groupService.createGroup(dto));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<GroupDto> getGroupById(@PathVariable Long id) {
-        return ResponseEntity.ok(groupMapper.toDto(groupService.getGroupById(id)));
+        return ResponseEntity.ok(groupService.getGroupById(id));
     }
 
     @GetMapping
     public ResponseEntity<List<GroupDto>> getAllGroups() {
-        return ResponseEntity.ok(groupService.getAllGroups().stream().map(groupMapper::toDto).toList());
+        return ResponseEntity.ok(groupService.getAllGroups());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<GroupDto> updateGroup(@PathVariable Long id, @Valid @RequestBody GroupDto dto) {
-        return ResponseEntity.ok(groupMapper.toDto(groupService.updateGroup(id, groupMapper.toEntity(dto))));
+        return ResponseEntity.ok(groupService.updateGroup(id, dto));
     }
 
     @DeleteMapping("/{id}")
@@ -44,9 +42,8 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
-
     @PostMapping("/{groupId}/students/{studentId}")
     public ResponseEntity<GroupDto> addStudentToGroup(@PathVariable Long groupId, @PathVariable Long studentId) {
-        return ResponseEntity.ok(groupMapper.toDto(groupService.addStudentToGroup(studentId, groupId)));
+        return ResponseEntity.ok(groupService.addStudentToGroup(studentId, groupId));
     }
 }

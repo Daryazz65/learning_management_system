@@ -10,12 +10,10 @@ class GroupServiceTest {
 
     @Test
     void testGroupDtoCreation() {
-        GroupDto dto = new GroupDto();
-        dto.setId(1L);
-        dto.setName("ИС-21");
+        GroupDto dto = new GroupDto(1L, "ИС-21", null);
 
-        assertEquals(1L, dto.getId());
-        assertEquals("ИС-21", dto.getName());
+        assertEquals(1L, dto.id());
+        assertEquals("ИС-21", dto.name());
     }
 
     @Test

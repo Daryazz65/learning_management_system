@@ -1,7 +1,6 @@
 package com.example.learningmanagementsystem.controller;
 
 import com.example.learningmanagementsystem.dto.CourseDto;
-import com.example.learningmanagementsystem.mapper.CourseMapper;
 import com.example.learningmanagementsystem.service.CourseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,26 +15,25 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
-    private final CourseMapper courseMapper;
 
     @PostMapping
     public ResponseEntity<CourseDto> createCourse(@Valid @RequestBody CourseDto dto) {
-        return ResponseEntity.ok(courseMapper.toDto(courseService.createCourse(courseMapper.toEntity(dto))));
+        return ResponseEntity.ok(courseService.createCourse(dto));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CourseDto> getCourseById(@PathVariable Long id) {
-        return ResponseEntity.ok(courseMapper.toDto(courseService.getCourseById(id)));
+        return ResponseEntity.ok(courseService.getCourseById(id));
     }
 
     @GetMapping
     public ResponseEntity<List<CourseDto>> getAllCourses() {
-        return ResponseEntity.ok(courseService.getAllCourses().stream().map(courseMapper::toDto).toList());
+        return ResponseEntity.ok(courseService.getAllCourses());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CourseDto> updateCourse(@PathVariable Long id, @Valid @RequestBody CourseDto dto) {
-        return ResponseEntity.ok(courseMapper.toDto(courseService.updateCourse(id, courseMapper.toEntity(dto))));
+        return ResponseEntity.ok(courseService.updateCourse(id, dto));
     }
 
     @DeleteMapping("/{id}")

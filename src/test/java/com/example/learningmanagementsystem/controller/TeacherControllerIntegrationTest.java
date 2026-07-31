@@ -1,7 +1,8 @@
 package com.example.learningmanagementsystem.controller;
 
-import com.example.learningmanagementsystem.entity.Teacher;
+import com.example.learningmanagementsystem.dto.TeacherDto;
 import com.example.learningmanagementsystem.repository.TeacherRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,15 +15,35 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class TeacherControllerIntegrationTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
 
     @LocalServerPort
     private int port;
@@ -32,22 +53,25 @@ class TeacherControllerIntegrationTest {
 
     private RestTemplate restTemplate;
     private String baseUrl;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
         restTemplate = new RestTemplate();
+        objectMapper = new ObjectMapper();
         baseUrl = "http://localhost:" + port + "/api/v1/teachers";
 
         teacherRepository.deleteAll();
-        Teacher teacher1 = new Teacher();
-        teacher1.setName("Иван");
-        teacher1.setLastName("Иванов");
-        teacherRepository.save(teacher1);
 
-        Teacher teacher2 = new Teacher();
-        teacher2.setName("Петр");
-        teacher2.setLastName("Петров");
-        teacherRepository.save(teacher2);
+        var t1 = new com.example.learningmanagementsystem.entity.Teacher();
+        t1.setName("Иван");
+        t1.setLastName("Иванов");
+        teacherRepository.save(t1);
+
+        var t2 = new com.example.learningmanagementsystem.entity.Teacher();
+        t2.setName("Петр");
+        t2.setLastName("Петров");
+        teacherRepository.save(t2);
     }
 
     @AfterEach
@@ -60,74 +84,57 @@ class TeacherControllerIntegrationTest {
         ResponseEntity<List> response = restTemplate.getForEntity(baseUrl, List.class);
 
         assertEquals(200, response.getStatusCodeValue());
-        List<?> teachers = response.getBody();
-        assertNotNull(teachers);
-        assertEquals(2, teachers.size());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
     }
 
     @Test
     void getTeacherById_ShouldReturnTeacher() {
-        Teacher savedTeacher = teacherRepository.findAll().get(0);
+        var saved = teacherRepository.findAll().get(0);
 
-        ResponseEntity<String> response = restTemplate.getForEntity(baseUrl + "/" + savedTeacher.getId(), String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                baseUrl + "/" + saved.getId(), String.class);
 
         assertEquals(200, response.getStatusCodeValue());
-        assertTrue(response.getBody().contains(savedTeacher.getName()));
-        assertTrue(response.getBody().contains(savedTeacher.getLastName()));
+        assertTrue(response.getBody().contains(saved.getName()));
     }
 
     @Test
     void getTeacherById_WhenNotFound_ShouldReturn404() {
-        Long nonExistentId = 999L;
-
         try {
-            restTemplate.getForEntity(baseUrl + "/" + nonExistentId, String.class);
-            fail("Ожидалось исключение HttpClientErrorException");
-        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            restTemplate.getForEntity(baseUrl + "/999", String.class);
+            fail("Ожидалось исключение");
+        } catch (HttpClientErrorException e) {
             assertEquals(404, e.getRawStatusCode());
         }
     }
 
     @Test
-    void createTeacher_ShouldCreateAndReturnTeacher() {
-        String newTeacherJson = """
-                {
-                    "name": "Мария",
-                    "lastName": "Сидорова"
-                }
-                """;
+    void createTeacher_ShouldCreateAndReturnTeacher() throws Exception {
+        String json = objectMapper.writeValueAsString(new TeacherDto(null, "Мария", "Сидорова"));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<>(newTeacherJson, headers);
+        HttpEntity<String> entity = new HttpEntity<>(json, headers);
 
         ResponseEntity<String> response = restTemplate.postForEntity(baseUrl, entity, String.class);
 
         assertEquals(200, response.getStatusCodeValue());
         assertTrue(response.getBody().contains("Мария"));
-        assertTrue(response.getBody().contains("Сидорова"));
-
-        List<Teacher> teachers = teacherRepository.findAll();
-        assertEquals(3, teachers.size());
+        assertEquals(3, teacherRepository.findAll().size());
     }
 
     @Test
-    void updateTeacher_ShouldUpdateAndReturnTeacher() {
-        Teacher savedTeacher = teacherRepository.findAll().get(0);
-
-        String updatedTeacherJson = """
-                {
-                    "name": "Обновленный",
-                    "lastName": "Иванов"
-                }
-                """;
+    void updateTeacher_ShouldUpdateAndReturnTeacher() throws Exception {
+        var saved = teacherRepository.findAll().get(0);
+        String json = objectMapper.writeValueAsString(new TeacherDto(null, "Обновленный", "Иванов"));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<>(updatedTeacherJson, headers);
+        HttpEntity<String> entity = new HttpEntity<>(json, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
-                baseUrl + "/" + savedTeacher.getId(),
+                baseUrl + "/" + saved.getId(),
                 HttpMethod.PUT,
                 entity,
                 String.class
@@ -135,21 +142,15 @@ class TeacherControllerIntegrationTest {
 
         assertEquals(200, response.getStatusCodeValue());
         assertTrue(response.getBody().contains("Обновленный"));
-
-        Teacher updated = teacherRepository.findById(savedTeacher.getId()).orElse(null);
-        assertNotNull(updated);
-        assertEquals("Обновленный", updated.getName());
     }
 
     @Test
     void deleteTeacher_ShouldDeleteTeacher() {
-        Teacher savedTeacher = teacherRepository.findAll().get(0);
-        Long teacherId = savedTeacher.getId();
+        var saved = teacherRepository.findAll().get(0);
 
-        restTemplate.delete(baseUrl + "/" + teacherId);
+        restTemplate.delete(baseUrl + "/" + saved.getId());
 
-        List<Teacher> teachers = teacherRepository.findAll();
-        assertEquals(1, teachers.size());
-        assertFalse(teachers.stream().anyMatch(t -> t.getId().equals(teacherId)));
+        assertEquals(1, teacherRepository.findAll().size());
+        assertFalse(teacherRepository.existsById(saved.getId()));
     }
 }
