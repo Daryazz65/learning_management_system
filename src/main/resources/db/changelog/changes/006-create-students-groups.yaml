@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6-create-students-groups
+      author: darya
+      changes:
+        - createTable:
+            tableName: students_groups
+            columns:
+              - column:
+                  name: student_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_student_group_student
+                    references: students(id)
+              - column:
+                  name: group_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_student_group_group
+                    references: groups(id)
+        - addPrimaryKey:
+            tableName: students_groups
+            columnNames: student_id, group_id
+            constraintName: pk_students_groups
